@@ -1,0 +1,377 @@
+open Mc_ext
+
+const tc : int = 900
+
+const kp : float = 10.0
+const ki : float = 0.0
+const kd : float = 30.0
+const limit : float = 45.0
+
+const mul : float = 0.01
+
+const kpF : float = 5.0
+const kiF : float = 0.0
+const kdF : float = 20.0
+const limitF : float = 100.0
+type mode =  Fwd | Sleft | Sright 
+
+node main(sen0, sen1, sen2, sen3, sen4, senLeft, senRight, f: int) returns (v_l, v_r, dir: int) 
+
+var last t : int = 0;
+    last error : int =0;
+    e1,e2 : int;
+    p,i,d: int;
+    time: int;
+    pidvalue,pidvalueF : float;
+
+let
+     e1 = (sen3-sen1)*1;
+     e2 = (sen4-sen0)*0;     
+     error = 0-> e1+e2;    
+     
+     p = error;
+     i = 0-> pre(i) + error;
+     d = error- last error;
+     
+     pidvalue  = mul *. ((kp  *. float_of_int(p)) +. (ki  *. float_of_int(i)) +. (kd  *. float_of_int(d)) );
+     pidvalueF = mul *. ((kpF *. float_of_int(p)) +. (kiF *. float_of_int(i)) +. (kdF *. float_of_int(d)) );
+     
+     automaton
+     
+     
+     state WhiteFast
+     
+     var
+    pid: float;
+    
+    temp : mode;  
+      
+    do
+     time = 0 -> pre(time) + 1;
+     
+     temp =     if  (sen4 >= tc) and (sen0 <= tc) then Sright 
+     		
+     		else if (sen0 >= tc) and (sen4 <= tc) then Sleft
+     		    		
+       		else Fwd;   
+       		  		
+     
+     		
+     pid = if (pidvalueF >=. limitF) then limitF
+     		else if (pidvalueF <=. (1.0-.2.0) *. limitF) then  (1.0-.2.0) *. limitF
+     		else pidvalueF;
+       
+           
+     switch temp
+     | Fwd do dir = 1;
+     	    v_l = int_of_float(limitF -. pid );
+     	    v_r = int_of_float(limitF +. pid)   	    
+     
+     | Sleft do dir = 2;
+     	   v_l = int_of_float(limitF);
+     	    v_r = int_of_float(limitF);    
+      
+     | Sright do dir = 3;
+             v_l = int_of_float(limitF);
+     	    v_r = int_of_float(limitF);    
+      
+     	    
+     end
+
+      until  ( time>45)  then Whiteline 
+     
+     
+     state Whiteline
+     var
+    pid: float;
+    
+    temp : mode;  
+      
+    do
+     time = 0 -> pre(time) + 1;
+     
+     temp =     if  (sen4 >= tc) and (sen0 <= tc) then Sright 
+     		
+     		else if (sen0 >= tc) and (sen4 <= tc) then Sleft
+     		    		
+       		else Fwd;     		
+     		
+     pid = if (pidvalue >=. limit) then limit
+     		else if (pidvalue <=. (1.0-.2.0) *. limit) then  (1.0-.2.0) *. limit
+     		else pidvalue;
+       
+           
+     switch temp
+     | Fwd do dir = 1;
+     	    v_l = int_of_float(limit -. pid );
+     	    v_r = int_of_float(limit +. pid)   	    
+     
+     | Sleft do dir = 21;
+     	   v_l = int_of_float(limit);
+     	    v_r = int_of_float(limit);    
+      
+     | Sright do dir = 31;
+             v_l = int_of_float(limit);
+     	    v_r = int_of_float(limit);    
+      
+     	    
+     end
+
+      until  ((sen0 >= tc) and (sen1 >= tc) and (sen2 >= tc) and (sen3 >= tc) and (sen4 >= tc)) 
+             or ((sen0 >= tc) and (sen1 >= tc) and (sen2 <= tc) and (sen3 >= tc) and (sen4 <= tc)) 
+            or ((sen0 <= tc) and (sen1 >= tc) and (sen2 <= tc) and (sen3 >= tc) and (sen4 >= tc)) 
+            or ((sen0 >= tc) and (sen1 >= tc) and (sen2 <= tc) and (sen3 >= tc) and (sen4 <= tc)) 
+             
+             then Blackline
+             
+     
+      state Blackline
+     
+    var
+    pid: float;
+    temp : mode;  
+    leftspace, rightspace : int ;
+    
+     do
+     
+     time = 0 -> pre(time) + 1;
+     
+     leftspace = 1 -> if (senLeft =0) then 0 else pre(leftspace) ;
+     rightspace = 1 -> if (senRight=0) then 0 else pre(rightspace) ;
+     
+     t = last t;
+         
+           
+      temp =     if  (sen4 <= tc) and (sen0 >= tc) then Sright 
+     		
+     		else if (sen0 <= tc) and (sen4 >= tc) then Sleft
+     		    		
+       		else Fwd;     		
+     		
+     pid = if (pidvalue >=. limit) then limit
+     		else if (pidvalue <=. (1.0-.2.0) *. limit) then  (1.0-.2.0) *. limit
+     		else pidvalue;
+       
+           
+     switch temp
+     | Fwd do dir = 1;
+     	    v_l = int_of_float(limit +. pid );
+     	    v_r = int_of_float(limit -. pid)   	    
+     
+     | Sleft do dir = 2;
+     	   v_l = int_of_float(limit);
+     	    v_r = int_of_float(limit);    
+      
+     | Sright do dir = 3;
+             v_l = int_of_float(limit);
+     	    v_r = int_of_float(limit);    
+      	    
+     end
+    
+     
+     until (f = 1) or (f = 2) or (f = 3) then Pause
+     | ((sen0 <= tc) and (sen1 <= tc) and (sen2 <= tc)) or ((sen1 <= tc) and (sen2 <= tc) and (sen3 <= tc)) or ((sen2 <= tc) and (sen3 <= tc) and (sen4 <= tc)) then Nodecount
+     | t=2 and ( time>20) then Nodecount
+     | t=6 and( time>55) and (leftspace = 1) then ParkLeft
+     | t=6 and ( time>55) and (rightspace = 1) then ParkRight
+     | t = 6 and ( time>55) and (rightspace = 0) and (leftspace = 0) then Wait 
+     
+
+     state Blackfast
+     
+    var
+    pid: float;
+    temp : mode;  
+    
+    
+     do
+     
+     time = 0 -> pre(time) + 1;
+     
+     t = last t ; 
+         
+           
+      temp =     if  (sen4 <= tc) and (sen0 >= tc) then Sright 
+     		
+     		else if (sen0 <= tc) and (sen4 >= tc) then Sleft
+     		    		
+       		else Fwd;     		
+     		
+     pid = if (pidvalueF >=. limitF) then limitF
+     		else if (pidvalueF <=. (1.0-.2.0) *. limitF) then  (1.0-.2.0) *. limitF
+     		else pidvalueF;
+       
+           
+     switch temp
+     | Fwd do dir = 1;
+     	    v_l = int_of_float(limitF +. pid );
+     	    v_r = int_of_float(limitF-. pid)   	    
+     
+     | Sleft do dir = 2;
+     	   v_l = int_of_float(limitF);
+     	    v_r = int_of_float(limitF);    
+      
+     | Sright do dir = 3;
+             v_l = int_of_float(limitF);
+     	    v_r = int_of_float(limitF);    
+      	    
+     end 
+     
+     until (f = 1) or (f = 2) or (f = 3) then Pause
+     |( time>60)  then Wait
+  
+       
+     state Nodecount 
+     do
+     time = 1 ;
+     dir = 11;
+     	    v_l = int_of_float(0.0  ) ;
+     	    v_r = int_of_float(0.0 ) ;
+
+	t = last t +1 ;
+     until ( time>0) and t=1 then Node1
+     | ( time>0) and t=2 then Node2
+     | ( time>0) and t=3 then Blackfast -- dummy node to slow speed
+     | ( time>0) and t=4 then Node3
+     | ( time>0) and t=5 then Node4
+     | ( time>0) and t=6 then Node5
+     
+     
+     
+     
+     
+     state Node1 -- Sleft
+     do
+     time = 0 -> pre(time) + 1;
+     dir = 2;
+     	    v_l = int_of_float(limit ) ;
+     	    v_r = int_of_float(limit ) ;
+
+     until ((sen0 >= tc) and (sen1 >= tc) and (sen2 <= tc) and (sen3 >= tc) and (sen4 >= tc)) then Blackline
+    
+     
+     state Node2 -- Sright
+     do
+     time = 0 -> pre(time) + 1;
+     dir = 3;
+     	    v_l = int_of_float(limit ) ;
+     	    v_r = int_of_float(limit ) ;
+
+     until  ((sen0 >= tc) and (sen1 >= tc) and (sen2 <= tc) and (sen3 >= tc) and (sen4 >= tc)) then Blackline
+    
+           
+    
+     state Node3 -- Sleft
+     do
+     time = 0 -> pre(time) + 1;
+     dir = 2;
+     	    v_l = int_of_float(limit ) ;
+     	    v_r = int_of_float(limit ) ;
+
+     until ((sen0 >= tc) and (sen1 >= tc) and (sen2 <= tc) and (sen3 >= tc) and (sen4 >= tc)) then Blackline
+    
+     state Node4 -- Sleft
+     do
+     time = 0 -> pre(time) + 1;
+     dir = 2;
+     	    v_l = int_of_float(limit  ) ;
+     	    v_r = int_of_float(limit ) ;
+
+     until ((sen0 >= tc) and (sen1 >= tc) and (sen2 <= tc) and (sen3 >= tc) and (sen4 >= tc)) then Blackline
+    
+     state Node5 -- Fwd
+     do
+     time = 0 -> pre(time) + 1;
+     dir = 1;
+     	    v_l = int_of_float(limit ) ;
+     	    v_r = int_of_float(limit ) ;
+
+     until ((sen0 >= tc) and (sen1 >= tc) and (sen2 <= tc) and (sen3 >= tc) and (sen4 >= tc))
+        or ((sen0 <= tc) and (sen1 >= tc) and (sen2 >= tc) and (sen3 >= tc) and (sen4 >= tc))
+        or ((sen0 >= tc) and (sen1 <= tc) and (sen2 >= tc) and (sen3 >= tc) and (sen4 >= tc))
+        or ((sen0 >= tc) and (sen1 >= tc) and (sen2 >= tc) and (sen3 <= tc) and (sen4 >= tc))
+        or ((sen0 >= tc) and (sen1 >= tc) and (sen2 >= tc) and (sen3 >= tc) and (sen4 <= tc))
+           then Wait
+    
+    state Pause
+              
+    do
+     time = 0 -> pre(time) + 1;
+     dir = 0;
+     	    v_l = int_of_float(0.0 ) ;
+     	    v_r = int_of_float(0.0 ) ;
+
+     until (f = 0) then Blackline    
+     
+     
+     
+     
+     state Wait
+        
+    do
+     time = 0 -> pre(time) + 1;
+     dir = 0;
+     	    v_l = int_of_float(0.0  ) ;
+     	    v_r = int_of_float(0.0 ) ;
+
+     until ( time>5) then Blackline
+    	
+     
+     
+     
+     
+     
+     state ParkLeft
+     
+     do
+     time = 0 -> pre(time) + 1;
+     dir = 21;
+     	    v_l = int_of_float(limit  ) ;
+     	    v_r = int_of_float(limit ) ;
+
+     until ( time>15) then Move
+     
+     
+     
+     state ParkRight
+     
+     do
+     time = 0 -> pre(time) + 1;
+     dir = 31;
+     	    v_l = int_of_float(limit  ) ;
+     	    v_r = int_of_float(limit ) ;
+
+     until ( time>15) then Move
+     
+     
+     
+     state Move
+      do
+     time = 0 -> pre(time) + 1;
+     dir = 1;
+     	    v_l = int_of_float(limit  ) ;
+     	    v_r = int_of_float(limit ) ;
+
+     until ( time>30) then Park
+     
+     
+     
+     state Park
+      do
+     time = 1;
+     dir = 0;
+     	    v_l = 0 ;
+     	    v_r = 0 ;
+
+     until ( time > 6) then Blackline
+     
+     
+     
+     
+     
+     
+     
+     
+     end
+     
+tel

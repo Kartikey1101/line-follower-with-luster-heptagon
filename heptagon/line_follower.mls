@@ -1,0 +1,808 @@
+open Mc_ext
+type st = St_Whiteline|St_WhiteFast|St_Wait|St_Pause|St_ParkRight|
+  St_ParkLeft|St_Park|St_Nodecount|St_Node5|St_Node4|St_Node3|St_Node2|
+  St_Node1|St_Move|St_Blackline|St_Blackfast
+const tc = 900
+const kp = 10.000000
+const ki = 0.000000
+const kd = 30.000000
+const limit = 45.000000
+const mul = 0.010000
+const kpF = 5.000000
+const kiF = 0.000000
+const kdF = 20.000000
+const limitF = 100.000000
+type mode = Fwd|Sleft|Sright
+node main(sen0 : int; sen1 : int; sen2 : int; sen3 : int; sen4 : int;
+           senLeft : int; senRight : int; f : int)
+returns (v_l : int; v_r : int; dir : int)
+var pidvalueF : float; pidvalue : float; time : int; d : int; i : int;
+    p : int; e2 : int; e1 : int; error : int; t : int; t_1 : int;
+    error_1 : int; pnr : bool; nr : bool; r : bool; ns : st; v : int;
+    v_1 : int; v_2 : bool; v_3 : int; v_4 : bool; v_5 : int; v_6 : int;
+    v_7 : float; v_8 : float; v_9 : float; v_10 : float; v_11 : float;
+    v_12 : float; v_13 : float; v_14 : float; v_15 : float; v_16 : float;
+    v_17 : float; v_18 : float; v_19 : float; v_20 : float; v_21 : float;
+    v_22 : float; ck : st; v_l_St_WhiteFast : int; v_r_St_WhiteFast : int;
+    dir_St_WhiteFast : int; t_St_WhiteFast : int; time_St_WhiteFast : int;
+    ns_St_WhiteFast : st; nr_St_WhiteFast : bool; v_l_St_Whiteline : int;
+    v_r_St_Whiteline : int; dir_St_Whiteline : int; t_St_Whiteline : int;
+    time_St_Whiteline : int; ns_St_Whiteline : st; nr_St_Whiteline : bool;
+    v_l_St_Blackline : int; v_r_St_Blackline : int; dir_St_Blackline : int;
+    t_St_Blackline : int; time_St_Blackline : int; ns_St_Blackline : st;
+    nr_St_Blackline : bool; v_l_St_Blackfast : int; v_r_St_Blackfast : int;
+    dir_St_Blackfast : int; t_St_Blackfast : int; time_St_Blackfast : int;
+    ns_St_Blackfast : st; nr_St_Blackfast : bool; v_l_St_Nodecount : int;
+    v_r_St_Nodecount : int; dir_St_Nodecount : int; t_St_Nodecount : int;
+    time_St_Nodecount : int; ns_St_Nodecount : st; nr_St_Nodecount : bool;
+    v_l_St_Node1 : int; v_r_St_Node1 : int; dir_St_Node1 : int;
+    t_St_Node1 : int; time_St_Node1 : int; ns_St_Node1 : st;
+    nr_St_Node1 : bool; v_l_St_Node2 : int; v_r_St_Node2 : int;
+    dir_St_Node2 : int; t_St_Node2 : int; time_St_Node2 : int;
+    ns_St_Node2 : st; nr_St_Node2 : bool; v_l_St_Node3 : int;
+    v_r_St_Node3 : int; dir_St_Node3 : int; t_St_Node3 : int;
+    time_St_Node3 : int; ns_St_Node3 : st; nr_St_Node3 : bool;
+    v_l_St_Node4 : int; v_r_St_Node4 : int; dir_St_Node4 : int;
+    t_St_Node4 : int; time_St_Node4 : int; ns_St_Node4 : st;
+    nr_St_Node4 : bool; v_l_St_Node5 : int; v_r_St_Node5 : int;
+    dir_St_Node5 : int; t_St_Node5 : int; time_St_Node5 : int;
+    ns_St_Node5 : st; nr_St_Node5 : bool; v_l_St_Pause : int;
+    v_r_St_Pause : int; dir_St_Pause : int; t_St_Pause : int;
+    time_St_Pause : int; ns_St_Pause : st; nr_St_Pause : bool;
+    v_l_St_Wait : int; v_r_St_Wait : int; dir_St_Wait : int; t_St_Wait : int;
+    time_St_Wait : int; ns_St_Wait : st; nr_St_Wait : bool;
+    v_l_St_ParkLeft : int; v_r_St_ParkLeft : int; dir_St_ParkLeft : int;
+    t_St_ParkLeft : int; time_St_ParkLeft : int; ns_St_ParkLeft : st;
+    nr_St_ParkLeft : bool; v_l_St_ParkRight : int; v_r_St_ParkRight : int;
+    dir_St_ParkRight : int; t_St_ParkRight : int; time_St_ParkRight : int;
+    ns_St_ParkRight : st; nr_St_ParkRight : bool; v_l_St_Move : int;
+    v_r_St_Move : int; dir_St_Move : int; t_St_Move : int;
+    time_St_Move : int; ns_St_Move : st; nr_St_Move : bool;
+    v_l_St_Park : int; v_r_St_Park : int; dir_St_Park : int; t_St_Park : int;
+    time_St_Park : int; ns_St_Park : st; nr_St_Park : bool; temp : mode;
+    pid : float; v_339 : bool; v_340 : bool; v_341 : bool; v_342 : int;
+    v_343 : int; v_344 : bool; v_345 : bool; v_346 : bool; v_347 : bool;
+    v_348 : bool; v_349 : bool; v_350 : mode; v_351 : bool; v_352 : bool;
+    v_353 : float; ck_1 : mode; v_l_St_WhiteFast_Fwd : int;
+    v_r_St_WhiteFast_Fwd : int; dir_St_WhiteFast_Fwd : int;
+    v_l_St_WhiteFast_Sleft : int; v_r_St_WhiteFast_Sleft : int;
+    dir_St_WhiteFast_Sleft : int; v_l_St_WhiteFast_Sright : int;
+    v_r_St_WhiteFast_Sright : int; dir_St_WhiteFast_Sright : int;
+    v_354 : float; v_355 : float; temp_1 : mode; pid_1 : float; v_284 : bool;
+    v_285 : bool; v_286 : bool; v_287 : bool; v_288 : bool; v_289 : bool;
+    v_290 : bool; v_291 : bool; v_292 : bool; v_293 : bool; v_294 : bool;
+    v_295 : bool; v_296 : bool; v_297 : bool; v_298 : bool; v_299 : bool;
+    v_300 : bool; v_301 : bool; v_302 : bool; v_303 : bool; v_304 : bool;
+    v_305 : bool; v_306 : bool; v_307 : bool; v_308 : bool; v_309 : bool;
+    v_310 : bool; v_311 : bool; v_312 : bool; v_313 : bool; v_314 : bool;
+    v_315 : bool; v_316 : bool; v_317 : bool; v_318 : bool; v_319 : bool;
+    v_320 : bool; v_321 : bool; v_322 : bool; v_323 : bool; v_324 : bool;
+    v_325 : int; v_326 : int; v_327 : bool; v_328 : bool; v_329 : bool;
+    v_330 : bool; v_331 : bool; v_332 : bool; v_333 : mode; v_334 : bool;
+    v_335 : bool; v_336 : float; ck_2 : mode; v_l_St_Whiteline_Fwd : int;
+    v_r_St_Whiteline_Fwd : int; dir_St_Whiteline_Fwd : int;
+    v_l_St_Whiteline_Sleft : int; v_r_St_Whiteline_Sleft : int;
+    dir_St_Whiteline_Sleft : int; v_l_St_Whiteline_Sright : int;
+    v_r_St_Whiteline_Sright : int; dir_St_Whiteline_Sright : int;
+    v_337 : float; v_338 : float; rightspace : int; leftspace : int;
+    temp_2 : mode; pid_2 : float; v_206 : bool; v_207 : bool; v_208 : bool;
+    v_209 : bool; v_210 : bool; v_211 : bool; v_212 : bool; v_213 : bool;
+    v_214 : bool; v_215 : bool; v_216 : bool; v_217 : bool; v_218 : bool;
+    v_219 : bool; v_220 : bool; v_221 : bool; v_222 : bool; v_223 : bool;
+    v_224 : bool; v_225 : bool; v_226 : bool; v_227 : bool; v_228 : bool;
+    v_229 : bool; v_230 : bool; v_231 : bool; v_232 : bool; v_233 : bool;
+    v_234 : bool; v_235 : bool; v_236 : bool; v_237 : bool; v_238 : bool;
+    v_239 : bool; v_240 : bool; v_241 : bool; v_242 : bool; v_243 : bool;
+    v_244 : bool; v_245 : bool; v_246 : bool; v_247 : bool; v_248 : st;
+    v_249 : bool; v_250 : st; v_251 : bool; v_252 : st; v_253 : bool;
+    v_254 : st; v_255 : bool; v_256 : st; v_257 : bool; v_258 : bool;
+    v_259 : bool; v_260 : int; v_261 : int; v_262 : bool; v_263 : bool;
+    v_264 : bool; v_265 : int; v_266 : int; v_267 : bool; v_268 : bool;
+    v_269 : bool; v_270 : int; v_271 : int; v_272 : bool; v_273 : bool;
+    v_274 : bool; v_275 : bool; v_276 : bool; v_277 : bool; v_278 : mode;
+    v_279 : bool; v_280 : bool; v_281 : float; ck_3 : mode;
+    v_l_St_Blackline_Fwd : int; v_r_St_Blackline_Fwd : int;
+    dir_St_Blackline_Fwd : int; v_l_St_Blackline_Sleft : int;
+    v_r_St_Blackline_Sleft : int; dir_St_Blackline_Sleft : int;
+    v_l_St_Blackline_Sright : int; v_r_St_Blackline_Sright : int;
+    dir_St_Blackline_Sright : int; v_282 : float; v_283 : float;
+    temp_3 : mode; pid_3 : float; v_182 : bool; v_183 : bool; v_184 : bool;
+    v_185 : bool; v_186 : bool; v_187 : bool; v_188 : st; v_189 : bool;
+    v_190 : bool; v_191 : bool; v_192 : int; v_193 : int; v_194 : bool;
+    v_195 : bool; v_196 : bool; v_197 : bool; v_198 : bool; v_199 : bool;
+    v_200 : mode; v_201 : bool; v_202 : bool; v_203 : float; ck_4 : mode;
+    v_l_St_Blackfast_Fwd : int; v_r_St_Blackfast_Fwd : int;
+    dir_St_Blackfast_Fwd : int; v_l_St_Blackfast_Sleft : int;
+    v_r_St_Blackfast_Sleft : int; dir_St_Blackfast_Sleft : int;
+    v_l_St_Blackfast_Sright : int; v_r_St_Blackfast_Sright : int;
+    dir_St_Blackfast_Sright : int; v_204 : float; v_205 : float;
+    v_154 : bool; v_155 : bool; v_156 : bool; v_157 : bool; v_158 : bool;
+    v_159 : bool; v_160 : bool; v_161 : bool; v_162 : bool; v_163 : bool;
+    v_164 : bool; v_165 : bool; v_166 : bool; v_167 : bool; v_168 : bool;
+    v_169 : bool; v_170 : bool; v_171 : bool; v_172 : st; v_173 : bool;
+    v_174 : st; v_175 : bool; v_176 : st; v_177 : bool; v_178 : st;
+    v_179 : bool; v_180 : st; v_181 : bool; v_141 : bool; v_142 : bool;
+    v_143 : bool; v_144 : bool; v_145 : bool; v_146 : bool; v_147 : bool;
+    v_148 : bool; v_149 : bool; v_150 : bool; v_151 : bool; v_152 : int;
+    v_153 : int; v_128 : bool; v_129 : bool; v_130 : bool; v_131 : bool;
+    v_132 : bool; v_133 : bool; v_134 : bool; v_135 : bool; v_136 : bool;
+    v_137 : bool; v_138 : bool; v_139 : int; v_140 : int; v_115 : bool;
+    v_116 : bool; v_117 : bool; v_118 : bool; v_119 : bool; v_120 : bool;
+    v_121 : bool; v_122 : bool; v_123 : bool; v_124 : bool; v_125 : bool;
+    v_126 : int; v_127 : int; v_102 : bool; v_103 : bool; v_104 : bool;
+    v_105 : bool; v_106 : bool; v_107 : bool; v_108 : bool; v_109 : bool;
+    v_110 : bool; v_111 : bool; v_112 : bool; v_113 : int; v_114 : int;
+    v_49 : bool; v_50 : bool; v_51 : bool; v_52 : bool; v_53 : bool;
+    v_54 : bool; v_55 : bool; v_56 : bool; v_57 : bool; v_58 : bool;
+    v_59 : bool; v_60 : bool; v_61 : bool; v_62 : bool; v_63 : bool;
+    v_64 : bool; v_65 : bool; v_66 : bool; v_67 : bool; v_68 : bool;
+    v_69 : bool; v_70 : bool; v_71 : bool; v_72 : bool; v_73 : bool;
+    v_74 : bool; v_75 : bool; v_76 : bool; v_77 : bool; v_78 : bool;
+    v_79 : bool; v_80 : bool; v_81 : bool; v_82 : bool; v_83 : bool;
+    v_84 : bool; v_85 : bool; v_86 : bool; v_87 : bool; v_88 : bool;
+    v_89 : bool; v_90 : bool; v_91 : bool; v_92 : bool; v_93 : bool;
+    v_94 : bool; v_95 : bool; v_96 : bool; v_97 : bool; v_98 : bool;
+    v_99 : bool; v_100 : int; v_101 : int; v_44 : bool; v_45 : bool;
+    v_46 : bool; v_47 : int; v_48 : int; v_39 : bool; v_40 : bool;
+    v_41 : bool; v_42 : int; v_43 : int; v_34 : bool; v_35 : bool;
+    v_36 : bool; v_37 : int; v_38 : int; v_29 : bool; v_30 : bool;
+    v_31 : bool; v_32 : int; v_33 : int; v_24 : bool; v_25 : bool;
+    v_26 : bool; v_27 : int; v_28 : int; v_23 : bool;
+let
+  error_1 = 0 fby error;
+  t_1 = 0 fby t;
+  r = pnr;
+  pnr = false fby nr;
+  ck = St_WhiteFast fby ns;
+  t_St_WhiteFast = (t_1 when St_WhiteFast(ck));
+  ck_1 = temp;
+  v_r_St_WhiteFast_Fwd = Mc_ext.int_of_float(v_355);
+  v_355 = (limitF +. (pid when Fwd(ck_1)));
+  v_l_St_WhiteFast_Fwd = Mc_ext.int_of_float(v_354);
+  v_354 = (limitF -. (pid when Fwd(ck_1)));
+  dir_St_WhiteFast_Fwd = 1;
+  v_r_St_WhiteFast_Sleft = Mc_ext.int_of_float(limitF);
+  v_l_St_WhiteFast_Sleft = Mc_ext.int_of_float(limitF);
+  dir_St_WhiteFast_Sleft = 2;
+  v_r_St_WhiteFast_Sright = Mc_ext.int_of_float(limitF);
+  v_l_St_WhiteFast_Sright = Mc_ext.int_of_float(limitF);
+  dir_St_WhiteFast_Sright = 3;
+  v_l_St_WhiteFast =
+    merge ck_1
+      (Sright -> v_l_St_WhiteFast_Sright)(Sleft -> v_l_St_WhiteFast_Sleft)
+      (Fwd -> v_l_St_WhiteFast_Fwd);
+  v_r_St_WhiteFast =
+    merge ck_1
+      (Sright -> v_r_St_WhiteFast_Sright)(Sleft -> v_r_St_WhiteFast_Sleft)
+      (Fwd -> v_r_St_WhiteFast_Fwd);
+  dir_St_WhiteFast =
+    merge ck_1
+      (Sright -> dir_St_WhiteFast_Sright)(Sleft -> dir_St_WhiteFast_Sleft)
+      (Fwd -> dir_St_WhiteFast_Fwd);
+  pid = if v_351 then limitF else v_353;
+  v_353 =
+    if v_352
+    then ((1.000000 -. 2.000000) *. limitF)
+    else (pidvalueF when St_WhiteFast(ck));
+  v_352 =
+    ((pidvalueF when St_WhiteFast(ck)) <=.
+     ((1.000000 -. 2.000000) *. limitF));
+  v_351 = ((pidvalueF when St_WhiteFast(ck)) >=. limitF);
+  temp = if v_346 then Sright else v_350;
+  v_350 = if v_349 then Sleft else Fwd;
+  v_349 = (v_347 & v_348);
+  v_348 = ((sen4 when St_WhiteFast(ck)) <= tc);
+  v_347 = ((sen0 when St_WhiteFast(ck)) >= tc);
+  v_346 = (v_344 & v_345);
+  v_345 = ((sen0 when St_WhiteFast(ck)) <= tc);
+  v_344 = ((sen4 when St_WhiteFast(ck)) >= tc);
+  time_St_WhiteFast = if v_341 then 0 else v_343;
+  v_343 = (v_342 + 1);
+  v_342 = pre (time when St_WhiteFast(ck));
+  v_341 = if v_340 then true else (r when St_WhiteFast(ck));
+  v_340 = true fby false;
+  nr_St_WhiteFast = if v_339 then true else false;
+  ns_St_WhiteFast = if v_339 then St_Whiteline else St_WhiteFast;
+  v_339 = ((time when St_WhiteFast(ck)) > 45);
+  t_St_Whiteline = (t_1 when St_Whiteline(ck));
+  ck_2 = temp_1;
+  v_r_St_Whiteline_Fwd = Mc_ext.int_of_float(v_338);
+  v_338 = (limit +. (pid_1 when Fwd(ck_2)));
+  v_l_St_Whiteline_Fwd = Mc_ext.int_of_float(v_337);
+  v_337 = (limit -. (pid_1 when Fwd(ck_2)));
+  dir_St_Whiteline_Fwd = 1;
+  v_r_St_Whiteline_Sleft = Mc_ext.int_of_float(limit);
+  v_l_St_Whiteline_Sleft = Mc_ext.int_of_float(limit);
+  dir_St_Whiteline_Sleft = 21;
+  v_r_St_Whiteline_Sright = Mc_ext.int_of_float(limit);
+  v_l_St_Whiteline_Sright = Mc_ext.int_of_float(limit);
+  dir_St_Whiteline_Sright = 31;
+  v_l_St_Whiteline =
+    merge ck_2
+      (Sright -> v_l_St_Whiteline_Sright)(Sleft -> v_l_St_Whiteline_Sleft)
+      (Fwd -> v_l_St_Whiteline_Fwd);
+  v_r_St_Whiteline =
+    merge ck_2
+      (Sright -> v_r_St_Whiteline_Sright)(Sleft -> v_r_St_Whiteline_Sleft)
+      (Fwd -> v_r_St_Whiteline_Fwd);
+  dir_St_Whiteline =
+    merge ck_2
+      (Sright -> dir_St_Whiteline_Sright)(Sleft -> dir_St_Whiteline_Sleft)
+      (Fwd -> dir_St_Whiteline_Fwd);
+  pid_1 = if v_334 then limit else v_336;
+  v_336 =
+    if v_335
+    then ((1.000000 -. 2.000000) *. limit)
+    else (pidvalue when St_Whiteline(ck));
+  v_335 =
+    ((pidvalue when St_Whiteline(ck)) <=. ((1.000000 -. 2.000000) *. limit));
+  v_334 = ((pidvalue when St_Whiteline(ck)) >=. limit);
+  temp_1 = if v_329 then Sright else v_333;
+  v_333 = if v_332 then Sleft else Fwd;
+  v_332 = (v_330 & v_331);
+  v_331 = ((sen4 when St_Whiteline(ck)) <= tc);
+  v_330 = ((sen0 when St_Whiteline(ck)) >= tc);
+  v_329 = (v_327 & v_328);
+  v_328 = ((sen0 when St_Whiteline(ck)) <= tc);
+  v_327 = ((sen4 when St_Whiteline(ck)) >= tc);
+  time_St_Whiteline = if v_324 then 0 else v_326;
+  v_326 = (v_325 + 1);
+  v_325 = pre (time when St_Whiteline(ck));
+  v_324 = if v_323 then true else (r when St_Whiteline(ck));
+  v_323 = true fby false;
+  nr_St_Whiteline = if v_322 then true else false;
+  ns_St_Whiteline = if v_322 then St_Blackline else St_Whiteline;
+  v_322 = (v_312 or v_321);
+  v_321 = (v_319 & v_320);
+  v_320 = ((sen4 when St_Whiteline(ck)) <= tc);
+  v_319 = (v_317 & v_318);
+  v_318 = ((sen3 when St_Whiteline(ck)) >= tc);
+  v_317 = (v_315 & v_316);
+  v_316 = ((sen2 when St_Whiteline(ck)) <= tc);
+  v_315 = (v_313 & v_314);
+  v_314 = ((sen1 when St_Whiteline(ck)) >= tc);
+  v_313 = ((sen0 when St_Whiteline(ck)) >= tc);
+  v_312 = (v_302 or v_311);
+  v_311 = (v_309 & v_310);
+  v_310 = ((sen4 when St_Whiteline(ck)) >= tc);
+  v_309 = (v_307 & v_308);
+  v_308 = ((sen3 when St_Whiteline(ck)) >= tc);
+  v_307 = (v_305 & v_306);
+  v_306 = ((sen2 when St_Whiteline(ck)) <= tc);
+  v_305 = (v_303 & v_304);
+  v_304 = ((sen1 when St_Whiteline(ck)) >= tc);
+  v_303 = ((sen0 when St_Whiteline(ck)) <= tc);
+  v_302 = (v_292 or v_301);
+  v_301 = (v_299 & v_300);
+  v_300 = ((sen4 when St_Whiteline(ck)) <= tc);
+  v_299 = (v_297 & v_298);
+  v_298 = ((sen3 when St_Whiteline(ck)) >= tc);
+  v_297 = (v_295 & v_296);
+  v_296 = ((sen2 when St_Whiteline(ck)) <= tc);
+  v_295 = (v_293 & v_294);
+  v_294 = ((sen1 when St_Whiteline(ck)) >= tc);
+  v_293 = ((sen0 when St_Whiteline(ck)) >= tc);
+  v_292 = (v_290 & v_291);
+  v_291 = ((sen4 when St_Whiteline(ck)) >= tc);
+  v_290 = (v_288 & v_289);
+  v_289 = ((sen3 when St_Whiteline(ck)) >= tc);
+  v_288 = (v_286 & v_287);
+  v_287 = ((sen2 when St_Whiteline(ck)) >= tc);
+  v_286 = (v_284 & v_285);
+  v_285 = ((sen1 when St_Whiteline(ck)) >= tc);
+  v_284 = ((sen0 when St_Whiteline(ck)) >= tc);
+  ck_3 = temp_2;
+  v_r_St_Blackline_Fwd = Mc_ext.int_of_float(v_283);
+  v_283 = (limit -. (pid_2 when Fwd(ck_3)));
+  v_l_St_Blackline_Fwd = Mc_ext.int_of_float(v_282);
+  v_282 = (limit +. (pid_2 when Fwd(ck_3)));
+  dir_St_Blackline_Fwd = 1;
+  v_r_St_Blackline_Sleft = Mc_ext.int_of_float(limit);
+  v_l_St_Blackline_Sleft = Mc_ext.int_of_float(limit);
+  dir_St_Blackline_Sleft = 2;
+  v_r_St_Blackline_Sright = Mc_ext.int_of_float(limit);
+  v_l_St_Blackline_Sright = Mc_ext.int_of_float(limit);
+  dir_St_Blackline_Sright = 3;
+  v_l_St_Blackline =
+    merge ck_3
+      (Sright -> v_l_St_Blackline_Sright)(Sleft -> v_l_St_Blackline_Sleft)
+      (Fwd -> v_l_St_Blackline_Fwd);
+  v_r_St_Blackline =
+    merge ck_3
+      (Sright -> v_r_St_Blackline_Sright)(Sleft -> v_r_St_Blackline_Sleft)
+      (Fwd -> v_r_St_Blackline_Fwd);
+  dir_St_Blackline =
+    merge ck_3
+      (Sright -> dir_St_Blackline_Sright)(Sleft -> dir_St_Blackline_Sleft)
+      (Fwd -> dir_St_Blackline_Fwd);
+  pid_2 = if v_279 then limit else v_281;
+  v_281 =
+    if v_280
+    then ((1.000000 -. 2.000000) *. limit)
+    else (pidvalue when St_Blackline(ck));
+  v_280 =
+    ((pidvalue when St_Blackline(ck)) <=. ((1.000000 -. 2.000000) *. limit));
+  v_279 = ((pidvalue when St_Blackline(ck)) >=. limit);
+  temp_2 = if v_274 then Sright else v_278;
+  v_278 = if v_277 then Sleft else Fwd;
+  v_277 = (v_275 & v_276);
+  v_276 = ((sen4 when St_Blackline(ck)) >= tc);
+  v_275 = ((sen0 when St_Blackline(ck)) <= tc);
+  v_274 = (v_272 & v_273);
+  v_273 = ((sen0 when St_Blackline(ck)) >= tc);
+  v_272 = ((sen4 when St_Blackline(ck)) <= tc);
+  t_St_Blackline = (t_1 when St_Blackline(ck));
+  rightspace = if v_268 then 1 else v_271;
+  v_271 = if v_269 then 0 else v_270;
+  v_270 = pre rightspace;
+  v_269 = ((senRight when St_Blackline(ck)) = 0);
+  v_268 = if v_267 then true else (r when St_Blackline(ck));
+  v_267 = true fby false;
+  leftspace = if v_263 then 1 else v_266;
+  v_266 = if v_264 then 0 else v_265;
+  v_265 = pre leftspace;
+  v_264 = ((senLeft when St_Blackline(ck)) = 0);
+  v_263 = if v_262 then true else (r when St_Blackline(ck));
+  v_262 = true fby false;
+  time_St_Blackline = if v_259 then 0 else v_261;
+  v_261 = (v_260 + 1);
+  v_260 = pre (time when St_Blackline(ck));
+  v_259 = if v_258 then true else (r when St_Blackline(ck));
+  v_258 = true fby false;
+  nr_St_Blackline = if v_210 then true else v_257;
+  ns_St_Blackline = if v_210 then St_Pause else v_256;
+  v_257 = if v_227 then true else v_255;
+  v_256 = if v_227 then St_Nodecount else v_254;
+  v_255 = if v_230 then true else v_253;
+  v_254 = if v_230 then St_Nodecount else v_252;
+  v_253 = if v_235 then true else v_251;
+  v_252 = if v_235 then St_ParkLeft else v_250;
+  v_251 = if v_240 then true else v_249;
+  v_250 = if v_240 then St_ParkRight else v_248;
+  v_249 = if v_247 then true else false;
+  v_248 = if v_247 then St_Wait else St_Blackline;
+  v_247 = (v_245 & v_246);
+  v_246 = (leftspace = 0);
+  v_245 = (v_243 & v_244);
+  v_244 = (rightspace = 0);
+  v_243 = (v_241 & v_242);
+  v_242 = ((time when St_Blackline(ck)) > 55);
+  v_241 = ((t when St_Blackline(ck)) = 6);
+  v_240 = (v_238 & v_239);
+  v_239 = (rightspace = 1);
+  v_238 = (v_236 & v_237);
+  v_237 = ((time when St_Blackline(ck)) > 55);
+  v_236 = ((t when St_Blackline(ck)) = 6);
+  v_235 = (v_233 & v_234);
+  v_234 = (leftspace = 1);
+  v_233 = (v_231 & v_232);
+  v_232 = ((time when St_Blackline(ck)) > 55);
+  v_231 = ((t when St_Blackline(ck)) = 6);
+  v_230 = (v_228 & v_229);
+  v_229 = ((time when St_Blackline(ck)) > 20);
+  v_228 = ((t when St_Blackline(ck)) = 2);
+  v_227 = (v_221 or v_226);
+  v_226 = (v_224 & v_225);
+  v_225 = ((sen4 when St_Blackline(ck)) <= tc);
+  v_224 = (v_222 & v_223);
+  v_223 = ((sen3 when St_Blackline(ck)) <= tc);
+  v_222 = ((sen2 when St_Blackline(ck)) <= tc);
+  v_221 = (v_215 or v_220);
+  v_220 = (v_218 & v_219);
+  v_219 = ((sen3 when St_Blackline(ck)) <= tc);
+  v_218 = (v_216 & v_217);
+  v_217 = ((sen2 when St_Blackline(ck)) <= tc);
+  v_216 = ((sen1 when St_Blackline(ck)) <= tc);
+  v_215 = (v_213 & v_214);
+  v_214 = ((sen2 when St_Blackline(ck)) <= tc);
+  v_213 = (v_211 & v_212);
+  v_212 = ((sen1 when St_Blackline(ck)) <= tc);
+  v_211 = ((sen0 when St_Blackline(ck)) <= tc);
+  v_210 = (v_208 or v_209);
+  v_209 = ((f when St_Blackline(ck)) = 3);
+  v_208 = (v_206 or v_207);
+  v_207 = ((f when St_Blackline(ck)) = 2);
+  v_206 = ((f when St_Blackline(ck)) = 1);
+  ck_4 = temp_3;
+  v_r_St_Blackfast_Fwd = Mc_ext.int_of_float(v_205);
+  v_205 = (limitF -. (pid_3 when Fwd(ck_4)));
+  v_l_St_Blackfast_Fwd = Mc_ext.int_of_float(v_204);
+  v_204 = (limitF +. (pid_3 when Fwd(ck_4)));
+  dir_St_Blackfast_Fwd = 1;
+  v_r_St_Blackfast_Sleft = Mc_ext.int_of_float(limitF);
+  v_l_St_Blackfast_Sleft = Mc_ext.int_of_float(limitF);
+  dir_St_Blackfast_Sleft = 2;
+  v_r_St_Blackfast_Sright = Mc_ext.int_of_float(limitF);
+  v_l_St_Blackfast_Sright = Mc_ext.int_of_float(limitF);
+  dir_St_Blackfast_Sright = 3;
+  v_l_St_Blackfast =
+    merge ck_4
+      (Sright -> v_l_St_Blackfast_Sright)(Sleft -> v_l_St_Blackfast_Sleft)
+      (Fwd -> v_l_St_Blackfast_Fwd);
+  v_r_St_Blackfast =
+    merge ck_4
+      (Sright -> v_r_St_Blackfast_Sright)(Sleft -> v_r_St_Blackfast_Sleft)
+      (Fwd -> v_r_St_Blackfast_Fwd);
+  dir_St_Blackfast =
+    merge ck_4
+      (Sright -> dir_St_Blackfast_Sright)(Sleft -> dir_St_Blackfast_Sleft)
+      (Fwd -> dir_St_Blackfast_Fwd);
+  pid_3 = if v_201 then limitF else v_203;
+  v_203 =
+    if v_202
+    then ((1.000000 -. 2.000000) *. limitF)
+    else (pidvalueF when St_Blackfast(ck));
+  v_202 =
+    ((pidvalueF when St_Blackfast(ck)) <=.
+     ((1.000000 -. 2.000000) *. limitF));
+  v_201 = ((pidvalueF when St_Blackfast(ck)) >=. limitF);
+  temp_3 = if v_196 then Sright else v_200;
+  v_200 = if v_199 then Sleft else Fwd;
+  v_199 = (v_197 & v_198);
+  v_198 = ((sen4 when St_Blackfast(ck)) >= tc);
+  v_197 = ((sen0 when St_Blackfast(ck)) <= tc);
+  v_196 = (v_194 & v_195);
+  v_195 = ((sen0 when St_Blackfast(ck)) >= tc);
+  v_194 = ((sen4 when St_Blackfast(ck)) <= tc);
+  t_St_Blackfast = (t_1 when St_Blackfast(ck));
+  time_St_Blackfast = if v_191 then 0 else v_193;
+  v_193 = (v_192 + 1);
+  v_192 = pre (time when St_Blackfast(ck));
+  v_191 = if v_190 then true else (r when St_Blackfast(ck));
+  v_190 = true fby false;
+  nr_St_Blackfast = if v_186 then true else v_189;
+  ns_St_Blackfast = if v_186 then St_Pause else v_188;
+  v_189 = if v_187 then true else false;
+  v_188 = if v_187 then St_Wait else St_Blackfast;
+  v_187 = ((time when St_Blackfast(ck)) > 60);
+  v_186 = (v_184 or v_185);
+  v_185 = ((f when St_Blackfast(ck)) = 3);
+  v_184 = (v_182 or v_183);
+  v_183 = ((f when St_Blackfast(ck)) = 2);
+  v_182 = ((f when St_Blackfast(ck)) = 1);
+  t_St_Nodecount = ((t_1 when St_Nodecount(ck)) + 1);
+  v_r_St_Nodecount = Mc_ext.int_of_float(0.000000);
+  v_l_St_Nodecount = Mc_ext.int_of_float(0.000000);
+  dir_St_Nodecount = 11;
+  time_St_Nodecount = 1;
+  nr_St_Nodecount = if v_156 then true else v_181;
+  ns_St_Nodecount = if v_156 then St_Node1 else v_180;
+  v_181 = if v_159 then true else v_179;
+  v_180 = if v_159 then St_Node2 else v_178;
+  v_179 = if v_162 then true else v_177;
+  v_178 = if v_162 then St_Blackfast else v_176;
+  v_177 = if v_165 then true else v_175;
+  v_176 = if v_165 then St_Node3 else v_174;
+  v_175 = if v_168 then true else v_173;
+  v_174 = if v_168 then St_Node4 else v_172;
+  v_173 = if v_171 then true else false;
+  v_172 = if v_171 then St_Node5 else St_Nodecount;
+  v_171 = (v_169 & v_170);
+  v_170 = ((t when St_Nodecount(ck)) = 6);
+  v_169 = ((time when St_Nodecount(ck)) > 0);
+  v_168 = (v_166 & v_167);
+  v_167 = ((t when St_Nodecount(ck)) = 5);
+  v_166 = ((time when St_Nodecount(ck)) > 0);
+  v_165 = (v_163 & v_164);
+  v_164 = ((t when St_Nodecount(ck)) = 4);
+  v_163 = ((time when St_Nodecount(ck)) > 0);
+  v_162 = (v_160 & v_161);
+  v_161 = ((t when St_Nodecount(ck)) = 3);
+  v_160 = ((time when St_Nodecount(ck)) > 0);
+  v_159 = (v_157 & v_158);
+  v_158 = ((t when St_Nodecount(ck)) = 2);
+  v_157 = ((time when St_Nodecount(ck)) > 0);
+  v_156 = (v_154 & v_155);
+  v_155 = ((t when St_Nodecount(ck)) = 1);
+  v_154 = ((time when St_Nodecount(ck)) > 0);
+  t_St_Node1 = (t_1 when St_Node1(ck));
+  v_r_St_Node1 = Mc_ext.int_of_float(limit);
+  v_l_St_Node1 = Mc_ext.int_of_float(limit);
+  dir_St_Node1 = 2;
+  time_St_Node1 = if v_151 then 0 else v_153;
+  v_153 = (v_152 + 1);
+  v_152 = pre (time when St_Node1(ck));
+  v_151 = if v_150 then true else (r when St_Node1(ck));
+  v_150 = true fby false;
+  nr_St_Node1 = if v_149 then true else false;
+  ns_St_Node1 = if v_149 then St_Blackline else St_Node1;
+  v_149 = (v_147 & v_148);
+  v_148 = ((sen4 when St_Node1(ck)) >= tc);
+  v_147 = (v_145 & v_146);
+  v_146 = ((sen3 when St_Node1(ck)) >= tc);
+  v_145 = (v_143 & v_144);
+  v_144 = ((sen2 when St_Node1(ck)) <= tc);
+  v_143 = (v_141 & v_142);
+  v_142 = ((sen1 when St_Node1(ck)) >= tc);
+  v_141 = ((sen0 when St_Node1(ck)) >= tc);
+  t_St_Node2 = (t_1 when St_Node2(ck));
+  v_r_St_Node2 = Mc_ext.int_of_float(limit);
+  v_l_St_Node2 = Mc_ext.int_of_float(limit);
+  dir_St_Node2 = 3;
+  time_St_Node2 = if v_138 then 0 else v_140;
+  v_140 = (v_139 + 1);
+  v_139 = pre (time when St_Node2(ck));
+  v_138 = if v_137 then true else (r when St_Node2(ck));
+  v_137 = true fby false;
+  nr_St_Node2 = if v_136 then true else false;
+  ns_St_Node2 = if v_136 then St_Blackline else St_Node2;
+  v_136 = (v_134 & v_135);
+  v_135 = ((sen4 when St_Node2(ck)) >= tc);
+  v_134 = (v_132 & v_133);
+  v_133 = ((sen3 when St_Node2(ck)) >= tc);
+  v_132 = (v_130 & v_131);
+  v_131 = ((sen2 when St_Node2(ck)) <= tc);
+  v_130 = (v_128 & v_129);
+  v_129 = ((sen1 when St_Node2(ck)) >= tc);
+  v_128 = ((sen0 when St_Node2(ck)) >= tc);
+  t_St_Node3 = (t_1 when St_Node3(ck));
+  v_r_St_Node3 = Mc_ext.int_of_float(limit);
+  v_l_St_Node3 = Mc_ext.int_of_float(limit);
+  dir_St_Node3 = 2;
+  time_St_Node3 = if v_125 then 0 else v_127;
+  v_127 = (v_126 + 1);
+  v_126 = pre (time when St_Node3(ck));
+  v_125 = if v_124 then true else (r when St_Node3(ck));
+  v_124 = true fby false;
+  nr_St_Node3 = if v_123 then true else false;
+  ns_St_Node3 = if v_123 then St_Blackline else St_Node3;
+  v_123 = (v_121 & v_122);
+  v_122 = ((sen4 when St_Node3(ck)) >= tc);
+  v_121 = (v_119 & v_120);
+  v_120 = ((sen3 when St_Node3(ck)) >= tc);
+  v_119 = (v_117 & v_118);
+  v_118 = ((sen2 when St_Node3(ck)) <= tc);
+  v_117 = (v_115 & v_116);
+  v_116 = ((sen1 when St_Node3(ck)) >= tc);
+  v_115 = ((sen0 when St_Node3(ck)) >= tc);
+  t_St_Node4 = (t_1 when St_Node4(ck));
+  v_r_St_Node4 = Mc_ext.int_of_float(limit);
+  v_l_St_Node4 = Mc_ext.int_of_float(limit);
+  dir_St_Node4 = 2;
+  time_St_Node4 = if v_112 then 0 else v_114;
+  v_114 = (v_113 + 1);
+  v_113 = pre (time when St_Node4(ck));
+  v_112 = if v_111 then true else (r when St_Node4(ck));
+  v_111 = true fby false;
+  nr_St_Node4 = if v_110 then true else false;
+  ns_St_Node4 = if v_110 then St_Blackline else St_Node4;
+  v_110 = (v_108 & v_109);
+  v_109 = ((sen4 when St_Node4(ck)) >= tc);
+  v_108 = (v_106 & v_107);
+  v_107 = ((sen3 when St_Node4(ck)) >= tc);
+  v_106 = (v_104 & v_105);
+  v_105 = ((sen2 when St_Node4(ck)) <= tc);
+  v_104 = (v_102 & v_103);
+  v_103 = ((sen1 when St_Node4(ck)) >= tc);
+  v_102 = ((sen0 when St_Node4(ck)) >= tc);
+  t_St_Node5 = (t_1 when St_Node5(ck));
+  v_r_St_Node5 = Mc_ext.int_of_float(limit);
+  v_l_St_Node5 = Mc_ext.int_of_float(limit);
+  dir_St_Node5 = 1;
+  time_St_Node5 = if v_99 then 0 else v_101;
+  v_101 = (v_100 + 1);
+  v_100 = pre (time when St_Node5(ck));
+  v_99 = if v_98 then true else (r when St_Node5(ck));
+  v_98 = true fby false;
+  nr_St_Node5 = if v_97 then true else false;
+  ns_St_Node5 = if v_97 then St_Wait else St_Node5;
+  v_97 = (v_87 or v_96);
+  v_96 = (v_94 & v_95);
+  v_95 = ((sen4 when St_Node5(ck)) <= tc);
+  v_94 = (v_92 & v_93);
+  v_93 = ((sen3 when St_Node5(ck)) >= tc);
+  v_92 = (v_90 & v_91);
+  v_91 = ((sen2 when St_Node5(ck)) >= tc);
+  v_90 = (v_88 & v_89);
+  v_89 = ((sen1 when St_Node5(ck)) >= tc);
+  v_88 = ((sen0 when St_Node5(ck)) >= tc);
+  v_87 = (v_77 or v_86);
+  v_86 = (v_84 & v_85);
+  v_85 = ((sen4 when St_Node5(ck)) >= tc);
+  v_84 = (v_82 & v_83);
+  v_83 = ((sen3 when St_Node5(ck)) <= tc);
+  v_82 = (v_80 & v_81);
+  v_81 = ((sen2 when St_Node5(ck)) >= tc);
+  v_80 = (v_78 & v_79);
+  v_79 = ((sen1 when St_Node5(ck)) >= tc);
+  v_78 = ((sen0 when St_Node5(ck)) >= tc);
+  v_77 = (v_67 or v_76);
+  v_76 = (v_74 & v_75);
+  v_75 = ((sen4 when St_Node5(ck)) >= tc);
+  v_74 = (v_72 & v_73);
+  v_73 = ((sen3 when St_Node5(ck)) >= tc);
+  v_72 = (v_70 & v_71);
+  v_71 = ((sen2 when St_Node5(ck)) >= tc);
+  v_70 = (v_68 & v_69);
+  v_69 = ((sen1 when St_Node5(ck)) <= tc);
+  v_68 = ((sen0 when St_Node5(ck)) >= tc);
+  v_67 = (v_57 or v_66);
+  v_66 = (v_64 & v_65);
+  v_65 = ((sen4 when St_Node5(ck)) >= tc);
+  v_64 = (v_62 & v_63);
+  v_63 = ((sen3 when St_Node5(ck)) >= tc);
+  v_62 = (v_60 & v_61);
+  v_61 = ((sen2 when St_Node5(ck)) >= tc);
+  v_60 = (v_58 & v_59);
+  v_59 = ((sen1 when St_Node5(ck)) >= tc);
+  v_58 = ((sen0 when St_Node5(ck)) <= tc);
+  v_57 = (v_55 & v_56);
+  v_56 = ((sen4 when St_Node5(ck)) >= tc);
+  v_55 = (v_53 & v_54);
+  v_54 = ((sen3 when St_Node5(ck)) >= tc);
+  v_53 = (v_51 & v_52);
+  v_52 = ((sen2 when St_Node5(ck)) <= tc);
+  v_51 = (v_49 & v_50);
+  v_50 = ((sen1 when St_Node5(ck)) >= tc);
+  v_49 = ((sen0 when St_Node5(ck)) >= tc);
+  t_St_Pause = (t_1 when St_Pause(ck));
+  v_r_St_Pause = Mc_ext.int_of_float(0.000000);
+  v_l_St_Pause = Mc_ext.int_of_float(0.000000);
+  dir_St_Pause = 0;
+  time_St_Pause = if v_46 then 0 else v_48;
+  v_48 = (v_47 + 1);
+  v_47 = pre (time when St_Pause(ck));
+  v_46 = if v_45 then true else (r when St_Pause(ck));
+  v_45 = true fby false;
+  nr_St_Pause = if v_44 then true else false;
+  ns_St_Pause = if v_44 then St_Blackline else St_Pause;
+  v_44 = ((f when St_Pause(ck)) = 0);
+  t_St_Wait = (t_1 when St_Wait(ck));
+  v_r_St_Wait = Mc_ext.int_of_float(0.000000);
+  v_l_St_Wait = Mc_ext.int_of_float(0.000000);
+  dir_St_Wait = 0;
+  time_St_Wait = if v_41 then 0 else v_43;
+  v_43 = (v_42 + 1);
+  v_42 = pre (time when St_Wait(ck));
+  v_41 = if v_40 then true else (r when St_Wait(ck));
+  v_40 = true fby false;
+  nr_St_Wait = if v_39 then true else false;
+  ns_St_Wait = if v_39 then St_Blackline else St_Wait;
+  v_39 = ((time when St_Wait(ck)) > 5);
+  t_St_ParkLeft = (t_1 when St_ParkLeft(ck));
+  v_r_St_ParkLeft = Mc_ext.int_of_float(limit);
+  v_l_St_ParkLeft = Mc_ext.int_of_float(limit);
+  dir_St_ParkLeft = 21;
+  time_St_ParkLeft = if v_36 then 0 else v_38;
+  v_38 = (v_37 + 1);
+  v_37 = pre (time when St_ParkLeft(ck));
+  v_36 = if v_35 then true else (r when St_ParkLeft(ck));
+  v_35 = true fby false;
+  nr_St_ParkLeft = if v_34 then true else false;
+  ns_St_ParkLeft = if v_34 then St_Move else St_ParkLeft;
+  v_34 = ((time when St_ParkLeft(ck)) > 15);
+  t_St_ParkRight = (t_1 when St_ParkRight(ck));
+  v_r_St_ParkRight = Mc_ext.int_of_float(limit);
+  v_l_St_ParkRight = Mc_ext.int_of_float(limit);
+  dir_St_ParkRight = 31;
+  time_St_ParkRight = if v_31 then 0 else v_33;
+  v_33 = (v_32 + 1);
+  v_32 = pre (time when St_ParkRight(ck));
+  v_31 = if v_30 then true else (r when St_ParkRight(ck));
+  v_30 = true fby false;
+  nr_St_ParkRight = if v_29 then true else false;
+  ns_St_ParkRight = if v_29 then St_Move else St_ParkRight;
+  v_29 = ((time when St_ParkRight(ck)) > 15);
+  t_St_Move = (t_1 when St_Move(ck));
+  v_r_St_Move = Mc_ext.int_of_float(limit);
+  v_l_St_Move = Mc_ext.int_of_float(limit);
+  dir_St_Move = 1;
+  time_St_Move = if v_26 then 0 else v_28;
+  v_28 = (v_27 + 1);
+  v_27 = pre (time when St_Move(ck));
+  v_26 = if v_25 then true else (r when St_Move(ck));
+  v_25 = true fby false;
+  nr_St_Move = if v_24 then true else false;
+  ns_St_Move = if v_24 then St_Park else St_Move;
+  v_24 = ((time when St_Move(ck)) > 30);
+  t_St_Park = (t_1 when St_Park(ck));
+  v_r_St_Park = 0;
+  v_l_St_Park = 0;
+  dir_St_Park = 0;
+  time_St_Park = 1;
+  nr_St_Park = if v_23 then true else false;
+  ns_St_Park = if v_23 then St_Blackline else St_Park;
+  v_23 = ((time when St_Park(ck)) > 6);
+  v_l =
+    merge ck
+      (St_Park -> v_l_St_Park)(St_Move -> v_l_St_Move)
+      (St_ParkRight -> v_l_St_ParkRight)(St_ParkLeft -> v_l_St_ParkLeft)
+      (St_Wait -> v_l_St_Wait)(St_Pause -> v_l_St_Pause)
+      (St_Node5 -> v_l_St_Node5)(St_Node4 -> v_l_St_Node4)
+      (St_Node3 -> v_l_St_Node3)(St_Node2 -> v_l_St_Node2)
+      (St_Node1 -> v_l_St_Node1)(St_Nodecount -> v_l_St_Nodecount)
+      (St_Blackfast -> v_l_St_Blackfast)(St_Blackline -> v_l_St_Blackline)
+      (St_Whiteline -> v_l_St_Whiteline)(St_WhiteFast -> v_l_St_WhiteFast);
+  v_r =
+    merge ck
+      (St_Park -> v_r_St_Park)(St_Move -> v_r_St_Move)
+      (St_ParkRight -> v_r_St_ParkRight)(St_ParkLeft -> v_r_St_ParkLeft)
+      (St_Wait -> v_r_St_Wait)(St_Pause -> v_r_St_Pause)
+      (St_Node5 -> v_r_St_Node5)(St_Node4 -> v_r_St_Node4)
+      (St_Node3 -> v_r_St_Node3)(St_Node2 -> v_r_St_Node2)
+      (St_Node1 -> v_r_St_Node1)(St_Nodecount -> v_r_St_Nodecount)
+      (St_Blackfast -> v_r_St_Blackfast)(St_Blackline -> v_r_St_Blackline)
+      (St_Whiteline -> v_r_St_Whiteline)(St_WhiteFast -> v_r_St_WhiteFast);
+  dir =
+    merge ck
+      (St_Park -> dir_St_Park)(St_Move -> dir_St_Move)
+      (St_ParkRight -> dir_St_ParkRight)(St_ParkLeft -> dir_St_ParkLeft)
+      (St_Wait -> dir_St_Wait)(St_Pause -> dir_St_Pause)
+      (St_Node5 -> dir_St_Node5)(St_Node4 -> dir_St_Node4)
+      (St_Node3 -> dir_St_Node3)(St_Node2 -> dir_St_Node2)
+      (St_Node1 -> dir_St_Node1)(St_Nodecount -> dir_St_Nodecount)
+      (St_Blackfast -> dir_St_Blackfast)(St_Blackline -> dir_St_Blackline)
+      (St_Whiteline -> dir_St_Whiteline)(St_WhiteFast -> dir_St_WhiteFast);
+  t =
+    merge ck
+      (St_Park -> t_St_Park)(St_Move -> t_St_Move)
+      (St_ParkRight -> t_St_ParkRight)(St_ParkLeft -> t_St_ParkLeft)
+      (St_Wait -> t_St_Wait)(St_Pause -> t_St_Pause)(St_Node5 -> t_St_Node5)
+      (St_Node4 -> t_St_Node4)(St_Node3 -> t_St_Node3)
+      (St_Node2 -> t_St_Node2)(St_Node1 -> t_St_Node1)
+      (St_Nodecount -> t_St_Nodecount)(St_Blackfast -> t_St_Blackfast)
+      (St_Blackline -> t_St_Blackline)(St_Whiteline -> t_St_Whiteline)
+      (St_WhiteFast -> t_St_WhiteFast);
+  time =
+    merge ck
+      (St_Park -> time_St_Park)(St_Move -> time_St_Move)
+      (St_ParkRight -> time_St_ParkRight)(St_ParkLeft -> time_St_ParkLeft)
+      (St_Wait -> time_St_Wait)(St_Pause -> time_St_Pause)
+      (St_Node5 -> time_St_Node5)(St_Node4 -> time_St_Node4)
+      (St_Node3 -> time_St_Node3)(St_Node2 -> time_St_Node2)
+      (St_Node1 -> time_St_Node1)(St_Nodecount -> time_St_Nodecount)
+      (St_Blackfast -> time_St_Blackfast)(St_Blackline -> time_St_Blackline)
+      (St_Whiteline -> time_St_Whiteline)(St_WhiteFast -> time_St_WhiteFast);
+  ns =
+    merge ck
+      (St_Park -> ns_St_Park)(St_Move -> ns_St_Move)
+      (St_ParkRight -> ns_St_ParkRight)(St_ParkLeft -> ns_St_ParkLeft)
+      (St_Wait -> ns_St_Wait)(St_Pause -> ns_St_Pause)
+      (St_Node5 -> ns_St_Node5)(St_Node4 -> ns_St_Node4)
+      (St_Node3 -> ns_St_Node3)(St_Node2 -> ns_St_Node2)
+      (St_Node1 -> ns_St_Node1)(St_Nodecount -> ns_St_Nodecount)
+      (St_Blackfast -> ns_St_Blackfast)(St_Blackline -> ns_St_Blackline)
+      (St_Whiteline -> ns_St_Whiteline)(St_WhiteFast -> ns_St_WhiteFast);
+  nr =
+    merge ck
+      (St_Park -> nr_St_Park)(St_Move -> nr_St_Move)
+      (St_ParkRight -> nr_St_ParkRight)(St_ParkLeft -> nr_St_ParkLeft)
+      (St_Wait -> nr_St_Wait)(St_Pause -> nr_St_Pause)
+      (St_Node5 -> nr_St_Node5)(St_Node4 -> nr_St_Node4)
+      (St_Node3 -> nr_St_Node3)(St_Node2 -> nr_St_Node2)
+      (St_Node1 -> nr_St_Node1)(St_Nodecount -> nr_St_Nodecount)
+      (St_Blackfast -> nr_St_Blackfast)(St_Blackline -> nr_St_Blackline)
+      (St_Whiteline -> nr_St_Whiteline)(St_WhiteFast -> nr_St_WhiteFast);
+  pidvalueF = (mul *. v_22);
+  v_22 = (v_19 +. v_21);
+  v_21 = (kdF *. v_20);
+  v_20 = Mc_ext.float_of_int(d);
+  v_19 = (v_16 +. v_18);
+  v_18 = (kiF *. v_17);
+  v_17 = Mc_ext.float_of_int(i);
+  v_16 = (kpF *. v_15);
+  v_15 = Mc_ext.float_of_int(p);
+  pidvalue = (mul *. v_14);
+  v_14 = (v_11 +. v_13);
+  v_13 = (kd *. v_12);
+  v_12 = Mc_ext.float_of_int(d);
+  v_11 = (v_8 +. v_10);
+  v_10 = (ki *. v_9);
+  v_9 = Mc_ext.float_of_int(i);
+  v_8 = (kp *. v_7);
+  v_7 = Mc_ext.float_of_int(p);
+  d = (error - error_1);
+  i = if v_4 then 0 else v_6;
+  v_6 = (v_5 + error);
+  v_5 = pre i;
+  v_4 = true fby false;
+  p = error;
+  error = if v_2 then 0 else v_3;
+  v_3 = (e1 + e2);
+  v_2 = true fby false;
+  e2 = (v_1 * 0);
+  v_1 = (sen4 - sen0);
+  e1 = (v * 1);
+  v = (sen3 - sen1)
+tel
+
